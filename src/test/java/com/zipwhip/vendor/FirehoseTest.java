@@ -1,6 +1,5 @@
 package com.zipwhip.vendor;
 
-import com.zipwhip.api.Address;
 import com.zipwhip.api.dto.Message;
 import com.zipwhip.api.dto.SignalToken;
 import com.zipwhip.api.signals.LoggingSignalTokenProcessor;
@@ -15,7 +14,6 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -29,15 +27,15 @@ import static org.junit.Assert.assertTrue;
  * Date: 10/10/11
  * Time: 10:59 AM
  */
-public class AolClientBootstrapTest {
+public class FirehoseTest {
 
-    private static final Logger LOGGER = Logger.getLogger(AolClientBootstrapTest.class);
+    private static final Logger LOGGER = Logger.getLogger(FirehoseTest.class);
 
     private static ApplicationContext context;
     private static AsyncVendorClient client;
 
-    private static final String friend = "3134147502";
-    private static final String admin = "9139802972";
+    private static final String friend = "";
+    private static final String admin = "";
 
     private static final String apiKey = "";
     private static final String secret = "";
