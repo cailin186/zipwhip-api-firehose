@@ -9,7 +9,7 @@
         <property name="destinationName" value="/vendor/aol"/>
         <property name="connectionFactory">
             <!-- Actually does the work of connecting to broker A1 -->
-            <bean id="connectionFactoryA1" class="org.springframework.jms.connection.CachingConnectionFactory">
+            <bean class="org.springframework.jms.connection.CachingConnectionFactory">
                 <constructor-arg index="0">
                     <bean class="org.apache.activemq.ActiveMQConnectionFactory">
 
@@ -29,33 +29,47 @@
         </property>
     </bean>
 
-    <!-- The message listener container for Broker B1 -->
+    <!--
+      - The message listener container for Broker B1. The ListenerContainer for Spring is a container for a collection of
+      - JMS consumers. This guy can grow/shrink the active consumer count depending on load. It also helps manage the
+      - transactions so that you can avoid dropped work if you crash. Following the Spring "template" pattern, it's
+      - just a convenience wrapper around the complex JMS api.
+      -->
     <bean id="jmsContainerB1" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
         <property name="destinationName" value="/vendor/aol"/>
-        <property name="connectionFactory" ref="connectionFactoryB1"/>
+        <property name="connectionFactory">
+
+          <!--
+            - Actually does the work of connecting to broker B1
+            - Usually your Java Enterprise Application Server would provide this for you via JNDI.
+            - We're using the Spring one for simplicity, and so you can run this via java direclty.
+            -->
+            <bean class="org.springframework.jms.connection.CachingConnectionFactory">
+                <constructor-arg index="0">
+                    <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+
+                        <!-- This should point to your broker -->
+                        <property name="brokerURL" value="tcp://broker-vendor-2.zipwhip.com:61616"/>
+                        <property name="userName" value="{your-user-name}"/>
+                        <property name="password" value="{your-password}"/>
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </property>
         <property name="messageListener">
+            <!-- Redirects all incoming traffic to this bean/method (uses reflection) -->
             <bean class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
                 <property name="delegate" ref="exampleJmsListener"/>
                 <property name="defaultListenerMethod" value="onMessage"/>
             </bean>
         </property>
+
+        <property name="concurrentConsumers" value="3"/>
+        <property name="maxConcurrentConsumers" value="10"/>
     </bean>
 
 
-    <!-- Actually does the work of connecting to broker B1 -->
-    <bean id="connectionFactoryB1" class="org.springframework.jms.connection.CachingConnectionFactory">
-        <constructor-arg index="0">
-            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
-
-                <!-- This should point to your broker -->
-                <property name="brokerURL" value="tcp://broker-vendor-2.zipwhip.com:61616"/>
-                <property name="userName" value="{your-user-name}"/>
-                <property name="password" value="{your-password}"/>
-            </bean>
-        </constructor-arg>
-    </bean>
-
-    <!-- Receives work via JMS -->
+    <!-- Receives work via JMS. Highly concurrent. Filters out, parses, and forwards. -->
     <bean name="exampleJmsListener" class="com.zipwhip.vendor.ExampleJmsListener">
         <property name="signalTokenProcessor" ref="signalTokenProcessor"/>
     </bean>
@@ -64,7 +78,16 @@
       - The SignalTokenProcessor's job is to process the SignalTokens that come from Zipwhip's JMS connectivity.
       - In this case, we're just logging them via Log4j. In real world scenario, there should be some database activity
       - that the vendor uses to record these events.
+      -
+      - This will be receiving work from many concurrent threads. It is a shared bean with highly concurrent access.
       -->
     <bean id="signalTokenProcessor" class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
+
+    <bean class="com.zipwhip.vendor.ExampleVendorApp">
+        <property name="apiKey" value="{your key here}"/>
+        <property name="apiSecret" value="{your key here}"/>
+        <property name="signalTokenProcessor" ref="signalTokenProcessor"/>
+    </bean>
+
 
 </beans>
