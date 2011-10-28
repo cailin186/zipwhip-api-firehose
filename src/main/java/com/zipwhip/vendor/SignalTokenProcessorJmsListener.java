@@ -14,11 +14,12 @@ import org.springframework.beans.factory.InitializingBean;
  * Date: 10/12/11
  * Time: 2:47 PM
  *
- * Shows how to parse values from JMS.
+ * This class parses JSON then forwards to a SignalTokenProcessor. If there is a problem parsing the JSON,
+ * it will log rather than throw.
  */
-public class ExampleJmsListener implements InitializingBean {
+public class SignalTokenProcessorJmsListener implements InitializingBean {
 
-    private static final Logger LOGGER = Logger.getLogger(ExampleJmsListener.class);
+    private static final Logger LOGGER = Logger.getLogger(SignalTokenProcessorJmsListener.class);
 
     private Parser<String, SignalToken> parser = new JsonSignalTokenParser();
     private SignalTokenProcessor signalTokenProcessor;
@@ -58,7 +59,8 @@ public class ExampleJmsListener implements InitializingBean {
         SignalToken signalToken = parser.parse(json);
 
         if (!isValidToken(signalToken)){
-            LOGGER.warn("The token was not valid, so we are aborting");
+            LOGGER.error("The token was not valid, so we are aborting " + signalToken.toString());
+            return;
         } else {
             LOGGER.info("The token was valid, continuing parsing");
         }
