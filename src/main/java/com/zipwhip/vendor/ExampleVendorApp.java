@@ -95,7 +95,7 @@ public class ExampleVendorApp implements InitializingBean {
         this.apiSecret = apiSecret;
     }
 
-    public SignalTokenProcessor getSignalTokenProcessor() {
+    public LoggingSignalTokenProcessor getSignalTokenProcessor() {
         return signalTokenProcessor;
     }
 

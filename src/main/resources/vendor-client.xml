@@ -23,7 +23,7 @@
         </property>
         <property name="messageListener">
             <bean class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
-                <property name="delegate" ref="exampleJmsListener"/>
+                <property name="delegate" ref="signalTokenProcessorJmsListener"/>
                 <property name="defaultListenerMethod" value="onMessage"/>
             </bean>
         </property>
@@ -39,7 +39,7 @@
         <property name="destinationName" value="/vendor/aol"/>
         <property name="connectionFactory">
 
-          <!--
+            <!--
             - Actually does the work of connecting to broker B1
             - Usually your Java Enterprise Application Server would provide this for you via JNDI.
             - We're using the Spring one for simplicity, and so you can run this via java direclty.
@@ -59,7 +59,7 @@
         <property name="messageListener">
             <!-- Redirects all incoming traffic to this bean/method (uses reflection) -->
             <bean class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
-                <property name="delegate" ref="exampleJmsListener"/>
+                <property name="delegate" ref="signalTokenProcessorJmsListener"/>
                 <property name="defaultListenerMethod" value="onMessage"/>
             </bean>
         </property>
@@ -70,7 +70,7 @@
 
 
     <!-- Receives work via JMS. Highly concurrent. Filters out, parses, and forwards. -->
-    <bean name="exampleJmsListener" class="com.zipwhip.vendor.ExampleJmsListener">
+    <bean name="signalTokenProcessorJmsListener" class="com.zipwhip.vendor.SignalTokenProcessorJmsListener">
         <property name="signalTokenProcessor" ref="signalTokenProcessor"/>
     </bean>
 
@@ -81,13 +81,37 @@
       -
       - This will be receiving work from many concurrent threads. It is a shared bean with highly concurrent access.
       -->
-    <bean id="signalTokenProcessor" class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
+    <bean id="signalTokenProcessor" class="com.zipwhip.vendor.BrokerSignalTokenProcessor" />
 
-    <bean class="com.zipwhip.vendor.ExampleVendorApp">
-        <property name="apiKey" value="{your key here}"/>
-        <property name="apiSecret" value="{your key here}"/>
-        <property name="signalTokenProcessor" ref="signalTokenProcessor"/>
+    <!-- This bean populates the other bean. Because the BrokerSignalTokenProcessor is not Spring aware. -->
+    <bean class="com.zipwhip.vendor.SpringBrokerSignalTokenProcessorAdapter">
+
+        <property name="observers">
+            <map>
+                <entry key="/signal">
+                    <list>
+                        <bean class="com.zipwhip.vendor.SignalTokenProcessorObserverAdapter">
+                            <property name="signalTokenProcessor">
+                                <bean class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
+                            </property>
+                        </bean>
+                        <bean id="loggingSignalTokenProcessor" class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
+                    </list>
+                </entry>
+                <entry key="/signal/message/receive">
+                    <list>
+                        <bean class="com.zipwhip.vendor.observers.MessageReceivedSignalTokenObserver">
+                            <!-- Maybe this bean has some dependencies on database? -->
+                        </bean>
+                    </list>
+                </entry>
+
+            </map>
+        </property>
+
+        <property name="brokerSignalTokenProcessor">
+            <ref bean="signalTokenProcessor"/>
+        </property>
     </bean>
-
 
 </beans>
