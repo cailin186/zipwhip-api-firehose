@@ -20,6 +20,7 @@ import java.util.Map;
 public class SpringBrokerSignalTokenProcessorAdapter implements InitializingBean {
 
     BrokerSignalTokenProcessor brokerSignalTokenProcessor;
+    Map<String, List<Observer<SignalToken>>> observers;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -40,8 +41,6 @@ public class SpringBrokerSignalTokenProcessorAdapter implements InitializingBean
             brokerSignalTokenProcessor.register(uri, observers.get(uri));
         }
     }
-
-    Map<String, List<Observer<SignalToken>>> observers;
 
     public Map<String, List<Observer<SignalToken>>> getObservers() {
         return observers;

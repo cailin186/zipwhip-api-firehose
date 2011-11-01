@@ -95,7 +95,6 @@
                                 <bean class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
                             </property>
                         </bean>
-                        <bean id="loggingSignalTokenProcessor" class="com.zipwhip.api.signals.LoggingSignalTokenProcessor"/>
                     </list>
                 </entry>
                 <entry key="/signal/message/receive">

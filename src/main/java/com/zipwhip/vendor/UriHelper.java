@@ -1,6 +1,7 @@
 package com.zipwhip.vendor;
 
 import com.zipwhip.util.CollectionUtil;
+import com.zipwhip.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +43,9 @@ public class UriHelper {
                     _uri = new ArrayList<String>(4);
                     StringBuilder sb = new StringBuilder("/");
                     for (String part : parts) {
+                        if(StringUtil.isNullOrEmpty(part)) {
+                            continue;
+                        }
                         sb.append(part);
                         _uri.add(sb.toString());
                         sb.append("/");

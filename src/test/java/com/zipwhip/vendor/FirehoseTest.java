@@ -56,8 +56,6 @@ public class FirehoseTest {
 
         assertTrue(future.isSuccess());
 
-
-
     }
 
     @Test
@@ -86,7 +84,7 @@ public class FirehoseTest {
     public void testReceiveMessage() throws Exception {
 
         // this processor allows for observing traffic.
-        LoggingSignalTokenProcessor processor = context.getBean(LoggingSignalTokenProcessor.class);
+        BrokerSignalTokenProcessor processor = context.getBean(BrokerSignalTokenProcessor.class);
 
         final Message[] message = {null};
         final CountDownLatch latch = new CountDownLatch(1);
@@ -119,13 +117,13 @@ public class FirehoseTest {
             }
         };
 
-        processor.addObserver(observer);
+        processor.register("/signal/message/receive", observer);
 
         latch.await(3, TimeUnit.MINUTES);
 
         assertNotNull(message[0]);
 
-        processor.removeObserver(observer);
+        processor.unregister("/signal/message/receive", observer);
 
 
     }

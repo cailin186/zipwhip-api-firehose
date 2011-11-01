@@ -48,7 +48,7 @@ public class BrokerSignalTokenProcessor implements SignalTokenProcessor {
 
         // grab out the ObservableHelper object. This is a helper that does the work of
         // notifying all the observers when the event happens.
-        Collection<ObservableHelper<SignalToken>> observables = getObservableForExecution(signalToken);
+        Collection<ObservableHelper<SignalToken>> observables = getObservableHelpersForExecution(signalToken);
 
         if (CollectionUtil.isNullOrEmpty(observables)) {
             LOGGER.warn(StringUtil.join("The observable for ", signalToken.toString(), " was null. Did you intend to register this?"));
@@ -131,7 +131,7 @@ public class BrokerSignalTokenProcessor implements SignalTokenProcessor {
      * @param signalToken
      * @return
      */
-    private Collection<ObservableHelper<SignalToken>> getObservableForExecution(SignalToken signalToken) {
+    private Collection<ObservableHelper<SignalToken>> getObservableHelpersForExecution(SignalToken signalToken) {
         String uri = getSignalUri(signalToken);
 
         if (StringUtil.isNullOrEmpty(uri)) {
@@ -174,6 +174,7 @@ public class BrokerSignalTokenProcessor implements SignalTokenProcessor {
         }
 
         // It's the use case that all signals that are "bulked" are guaranteed to be the same URI.
+        //TODO: use uri that will be put on the SignalToken
         Signal signal = CollectionUtil.first(signalToken.getSignals());
         if (signal == null) {
             throw new NullPointerException("The signals cannot be null");
